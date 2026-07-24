@@ -1,4 +1,4 @@
-# Unity generated
+# Unity
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -7,15 +7,46 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
-# IDE
+# Memory Profiler Snapshots
+[Mm]emoryCaptures/
+
+# Recordings
+[Rr]ecordings/
+
+# Asset Store
+[Aa]sset[Ss]tore[Tt]ools*/
+
+# Visual Studio
 .vs/
-.idea/
 *.csproj
 *.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
 
-# OS
+# Rider
+.idea/
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashlytics
+sysinfo.txt
 
 # Superpowers brainstorm sessions (temporary)
 .superpowers/brainstorm/
