@@ -7,12 +7,18 @@ public class PlayerIdleState : PlayerState
     public PlayerIdleState(PlayerController ctx , PlayerStateMachine sm) : base(ctx, sm)
     {
     }
-    public override void Exit()
+    public override void Enter()
     {
-        
+
     }
     public override void Update()
     {
+        //状态转移：攻击
+        if (_ctx.ConsumeAttackPressed())
+        {
+            _sm.ChangeState(new PlayerAttackState(_ctx, _sm));
+            return;
+        }
         //滑行减速
         _ctx.Rb.velocity = Vector3.MoveTowards(_ctx.Rb.velocity,new Vector3(0,_ctx.Rb.velocity.y,0), _ctx.Acceleration*Time.deltaTime);
         //动画过渡回待机
@@ -25,8 +31,8 @@ public class PlayerIdleState : PlayerState
             _sm.ChangeState(new PlayerMoveState(_ctx, _sm));
         }
     }
-    public override void Enter()
+    public override void Exit()
     {
-        
+
     }
 }

@@ -15,6 +15,12 @@ public class PlayerMoveState : PlayerState
     }
     public override void Update()
     {
+        //状态转移:攻击
+        if (_ctx.ConsumeAttackPressed())
+        {
+            _sm.ChangeState(new PlayerAttackState(_ctx, _sm));
+            return;
+        }
         Vector2 input = _ctx.MoveInput;
         //状态转移条件：无输入->切回待机（减速由Idle负责）
         if(input == Vector2.zero)
