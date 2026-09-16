@@ -80,6 +80,9 @@ public class CombatHUD : MonoBehaviour
             new Color(0.90f, 0.68f, 0.16f));
         CreateLabel(_enemyGroup.transform, "ENEMY",
             new Vector2(0.5f, 1f), new Vector2(0f, -40f));
+
+        //按键提示（右下角常驻）
+        CreateHelpPanel(canvasGo.transform);
     }
 
     //构建"半透明黑底 + 彩色填充"的条；返回填充Image供同步数值
@@ -134,6 +137,25 @@ public class CombatHUD : MonoBehaviour
         text.alignment = TextAnchor.UpperCenter;
         text.color = new Color(0.85f, 0.85f, 0.85f, 0.9f);
         return text;
+    }
+
+    //按键提示面板（右下角常驻，英文避免内置字体缺中文）
+    private void CreateHelpPanel(Transform parent)
+    {
+        GameObject go = new GameObject("HelpPanel");
+        RectTransform rt = go.AddComponent<RectTransform>();
+        rt.SetParent(parent, false);
+        rt.anchorMin = new Vector2(1f, 0f);
+        rt.anchorMax = new Vector2(1f, 0f);
+        rt.pivot = new Vector2(1f, 0f);
+        rt.anchoredPosition = new Vector2(-30f, 30f);
+        rt.sizeDelta = new Vector2(260f, 170f);
+        Text text = go.AddComponent<Text>();
+        text.text = "WASD  -  Move\nLMB  -  Attack\nRMB  -  Block (Hold)\nSpace  -  Dodge\nMMB  -  Lock-On\nR  -  Restart\nESC  -  Quit";
+        text.font = GetFont();
+        text.fontSize = 14;
+        text.alignment = TextAnchor.LowerRight;
+        text.color = new Color(0.85f, 0.85f, 0.85f, 0.75f);
     }
 
     //共享的1x1白色精灵（Image无sprite时无法使用Filled类型，故运行时生成）
