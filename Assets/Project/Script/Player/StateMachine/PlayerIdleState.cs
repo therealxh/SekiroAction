@@ -1,38 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerIdleState : PlayerState
 {
-    public PlayerIdleState(PlayerController ctx , PlayerStateMachine sm) : base(ctx, sm)
+    public PlayerIdleState(PlayerController ctx, PlayerStateMachine sm) : base(ctx, sm)
     {
     }
     public override void Enter()
     {
-
     }
     public override void Update()
     {
-        //×´Ì¬×ªÒÆ£º¹¥»÷
-        if (_ctx.ConsumeAttackPressed())
-        {
-            _sm.ChangeState(new PlayerAttackState(_ctx, _sm));
-            return;
-        }
-        //»¬ÐÐ¼õËÙ
-        _ctx.Rb.velocity = Vector3.MoveTowards(_ctx.Rb.velocity,new Vector3(0,_ctx.Rb.velocity.y,0), _ctx.Acceleration*Time.deltaTime);
-        //¶¯»­¹ý¶É»Ø´ý»ú
+        //çŠ¶æ€è½¬ç§»ï¼šæˆ˜æ–—è¾“å…¥
+        if (TryTransitByInput()) return;
+
+        //å‡é€Ÿåœæ­¢
+        _ctx.Rb.velocity = Vector3.MoveTowards(_ctx.Rb.velocity, new Vector3(0, _ctx.Rb.velocity.y, 0), _ctx.Acceleration * Time.deltaTime);
+        //æ’­æ”¾å¾…æœºåŠ¨ç”»
         Vector3 horizontalVelocity = new Vector3(_ctx.Rb.velocity.x, 0, _ctx.Rb.velocity.z);
         float currentSpeed = horizontalVelocity.magnitude / _ctx.MoveSpeed;
-        _ctx.Animator.SetFloat("Speed",currentSpeed,0.1f,Time.deltaTime);
-        //×ªÒÆÌõ¼þ£ºÓÐÊä³ö->×ªµ½ÒÆ¶¯
-        if(_ctx.MoveInput != Vector2.zero)
+        _ctx.Animator.SetFloat("Speed", currentSpeed, 0.1f, Time.deltaTime);
+        //è½¬å‘ï¼šé”å®šä¸­é¢å‘æ•Œäºº
+        if (_ctx.IsLocking)
+        {
+            _ctx.RotateTowardsLockTarget(_ctx.RotateSpeed * Time.deltaTime);
+        }
+        //çŠ¶æ€è½¬ç§»ï¼šæœ‰ç§»åŠ¨è¾“å…¥->åˆ‡ç§»åŠ¨
+        if (_ctx.MoveInput != Vector2.zero)
         {
             _sm.ChangeState(new PlayerMoveState(_ctx, _sm));
         }
     }
     public override void Exit()
     {
-
     }
 }

@@ -1,11 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerAttackState  : PlayerState
+public class PlayerAttackState : PlayerState
 {
-    private int _comboCount;//Á¬»÷¼ÆÊı
-    private float _enterTime;//½øÈëÊ±¿Ì(»º³åÖ¡ÓÃ);
+    private int _comboCount;//å½“å‰è¿æ®µ
+    private float _enterTime;//è¿›å…¥æ—¶åˆ»(ç¼“å†²å¸§ç”¨)
+    private bool _hitPerformed;//æœ¬æ¬¡æŒ¥åˆ€æ˜¯å¦å·²æ‰§è¡Œåˆ¤å®š
     public PlayerAttackState(PlayerController ctx, PlayerStateMachine sm) : base(ctx, sm)
     {
     }
@@ -13,46 +12,56 @@ public class PlayerAttackState  : PlayerState
     {
         _enterTime = Time.time;
         _comboCount = _ctx.GetNextCombo();
-        _ctx.Rb.velocity = new Vector3(0,_ctx.Rb.velocity.y,0);//Õ¾¶¨³öµ¶
-        _ctx.SetAttackTrigger(_comboCount);//²¥µÚÒ»µ¶
+        if (_ctx.IsLocking)
+        {
+            _ctx.RotateTowardsLockTarget(1f);//é”å®šä¸­ï¼šæ”»å‡»å‰å¯¹å‡†æ•Œäºº(ç¬é—´è½¬å‘)
+        }
+        _ctx.Rb.velocity = new Vector3(0, _ctx.Rb.velocity.y, 0);//ç«™å®šæ”»å‡»
+        _ctx.SetAttackTrigger(_comboCount);//æ’­æ”¾ç¬¬Nåˆ€
     }
     public override void Update()
     {
+        //è·å–å½“å‰æ’­æ”¾çš„æ”»å‡»åŠ¨ç”»ä¿¡æ¯
         AnimatorStateInfo stateInfo = _ctx.Animator.GetCurrentAnimatorStateInfo(0);
 
-        //»º³åÖ¡£ºµÈAnimatorÍê³É×´Ì¬ÇĞ»»(SetTriggerÏÂÒ»Ö¡²ÅÉúĞ§)
-        if(Time.time -  _enterTime > 0.1f)
+        //ç¼“å†²å¸§ï¼šç­‰Animatorå®ŒæˆçŠ¶æ€åˆ‡æ¢(SetTriggerä¸‹ä¸€å¸§æ‰ç”Ÿæ•ˆ)
+        if (Time.time - _enterTime > 0.1f)
         {
-            //Á¬»÷£ºµ±Ç°µ¶²¥·Åµ½60%Ö®ºó£¬¹¥»÷¼ü¿É½ÓÏÂÒ»µ¶
+            //æ”»å‡»åˆ¤å®šï¼šåŠ¨ç”»è¿›è¡Œä¸­ä¸”æ’­åˆ°50%æ—¶ï¼Œæ‰§è¡Œä¸€æ¬¡æ‰«æ åˆ¤å®š
+            if (!_hitPerformed && !stateInfo.IsName("Locomotion") && stateInfo.normalizedTime >= 0.5f)
+            {
+                _hitPerformed = true;
+                AttackResult result = CombatSweep.Perform(_ctx.transform, _ctx.AttackDamage);
+                if (result == AttackResult.Blocked)
+                {
+                    _ctx.TriggerHit();//è¢«æ ¼æŒ¡ï¼šæ”»å‡»æ–¹å—å¼¹
+                    return;
+                }
+            }
+            //è¿æ®µåˆ¤å®šï¼šå½“å‰åŠ¨ç”»æ’­åˆ°60%ä¹‹åï¼Œæ”»å‡»è¾“å…¥å¯æ¥ä¸‹ä¸€æ®µ
             if (stateInfo.normalizedTime > 0.6f && _comboCount < 3)
             {
                 if (_ctx.ConsumeAttackPressed())
                 {
                     _comboCount = _ctx.GetNextCombo();
                     _ctx.SetAttackTrigger(_comboCount);
+                    _hitPerformed = false;//æ–°ä¸€æ®µæ”»å‡»é‡æ–°å…è®¸åˆ¤å®š
                 }
             }
             else
             {
-                _ctx.ConsumeAttackPressed(); //´°¿ÚÎ´¿ª»òÁ¬¶ÎÒÑÂú£º¶ªÆú°´¼ü£¬·ÀÖÍÁô
-            }
-        }       
-        //½áÊø:AnimatiorÒÑÇĞ»ØLocomotion->°´ÊäÈë¾ö¶¨È¥Ïò
-        if(stateInfo.IsName("Locomotion"))
-        {
-            _ctx.RecordAttackLength(stateInfo.length);
-            if(_ctx.MoveInput != Vector2.zero)
-            {
-                _sm.ChangeState(new PlayerMoveState(_ctx, _sm));//°´×Å·½Ïò¼ü->½Ó×ÅÅÜ²½
-            }
-            else
-            {
-                _sm.ChangeState(new PlayerIdleState(_ctx,_sm));//´ı»ú
+                _ctx.ConsumeAttackPressed();//çª—å£æœªå¼€æˆ–è¿æ®µå·²æ»¡ï¼šä¸¢å¼ƒæŒ‰é”®é˜²æ»ç•™
             }
         }
-
+        //å‡ºå£:Animatorå·²åˆ‡å›Locomotion->æŒ‰è¾“å…¥å†³å®šå»å‘
+        if (stateInfo.IsName("Locomotion"))
+        {
+            _ctx.RecordAttackLength(stateInfo.length);
+            if (TryTransitByInput()) return;
+            TryTransitToGround();
+        }
     }
-    public override void Exit() 
-    { 
+    public override void Exit()
+    {
     }
 }

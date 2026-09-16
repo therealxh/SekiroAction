@@ -1,54 +1,65 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMoveState : PlayerState
 {
-    private Vector2 _lastInput;//ÉÏÒ»´ÎÊäÈë
-    private Vector3 _intentDir;//ÒÆ¶¯ÒâÍ¼·½Ïò¿ìÕÕ
+    private Vector2 _lastInput;//ä¸Šä¸€æ¬¡è¾“å…¥
+    private Vector3 _intentDir;//ç§»åŠ¨æ„å›¾æ–¹å‘
     public PlayerMoveState(PlayerController ctx, PlayerStateMachine sm) : base(ctx, sm)
     {
     }
     public override void Enter()
     {
-
     }
     public override void Update()
     {
-        //×´Ì¬×ªÒÆ:¹¥»÷
-        if (_ctx.ConsumeAttackPressed())
-        {
-            _sm.ChangeState(new PlayerAttackState(_ctx, _sm));
-            return;
-        }
+        //çŠ¶æ€è½¬ç§»:æˆ˜æ–—è¾“å…¥
+        if (TryTransitByInput()) return;
+
         Vector2 input = _ctx.MoveInput;
-        //×´Ì¬×ªÒÆÌõ¼ş£ºÎŞÊäÈë->ÇĞ»Ø´ı»ú£¨¼õËÙÓÉIdle¸ºÔğ£©
-        if(input == Vector2.zero)
+        //çŠ¶æ€è½¬ç§»:æ— ç§»åŠ¨è¾“å…¥->åˆ‡å›åœ°é¢é»˜è®¤çŠ¶æ€(Idle)
+        if (input == Vector2.zero)
         {
-            _sm.ChangeState(new PlayerIdleState(_ctx,_sm));
+            _sm.ChangeState(new PlayerIdleState(_ctx, _sm));
             return;
         }
-        //ÒâÍ¼¿ìÕÕ£¨ÊäÈë±ä»¯Ê±Ë¢ĞÂ£©
-        if (input != _lastInput) { 
+        //æ„å›¾æ–¹å‘ï¼ˆè¾“å…¥å˜åŒ–æ—¶åˆ·æ–°ï¼‰
+        if (input != _lastInput)
+        {
             _lastInput = input;
-            _intentDir = Camera.main.transform.TransformDirection(input.x, 0, input.y);
+            if (_ctx.IsLocking)
+            {
+                //é”å®šä¸­ï¼šç›¸å¯¹é”å®šç›®æ ‡ï¼ˆy=é è¿‘/åé€€ï¼Œx=æ¨ªç§»ï¼‰
+                Vector3 toTarget = _ctx.LockTarget.transform.position - _ctx.transform.position;
+                toTarget.y = 0;
+                Vector3 forward = toTarget.normalized;
+                Vector3 right = Vector3.Cross(Vector3.up, forward);
+                _intentDir = forward * input.y + right * input.x;
+            }
+            else
+            {
+                //æœªé”å®šï¼šç›¸å¯¹ç›¸æœºæ–¹å‘
+                _intentDir = Camera.main.transform.TransformDirection(input.x, 0, input.y);
+            }
             _intentDir.y = 0;
             _intentDir.Normalize();
         }
-        //ÒÆ¶¯(¼ÓËÙ¶È±Æ½ü)
+        //ç§»åŠ¨(å‘é€Ÿåº¦é€¼è¿‘)
         Vector3 targetVelocity = new Vector3(_ctx.MoveSpeed * _intentDir.x, _ctx.Rb.velocity.y, _ctx.MoveSpeed * _intentDir.z);
-        _ctx.Rb.velocity = Vector3.MoveTowards(_ctx.Rb.velocity,targetVelocity,_ctx.Acceleration*Time.deltaTime);
-        //×ªÉí
-        if (_intentDir != Vector3.zero)
+        _ctx.Rb.velocity = Vector3.MoveTowards(_ctx.Rb.velocity, targetVelocity, _ctx.Acceleration * Time.deltaTime);
+        //è½¬å‘
+        if (_ctx.IsLocking)
+        {
+            _ctx.RotateTowardsLockTarget(_ctx.RotateSpeed * Time.deltaTime);//é”å®šä¸­ï¼šå§‹ç»ˆé¢å‘æ•Œäºº
+        }
+        else if (_intentDir != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(_intentDir);
             _ctx.transform.rotation = Quaternion.Slerp(_ctx.transform.rotation, targetRotation, _ctx.RotateSpeed * Time.deltaTime);
         }
-        //¶¯»­Çı¶¯
+        //æ’­æ”¾åŠ¨ç”»
         Vector3 horizontalVelocity = new Vector3(_ctx.Rb.velocity.x, 0, _ctx.Rb.velocity.z);
         float currentSpeed = horizontalVelocity.magnitude / _ctx.MoveSpeed;
-        _ctx.Animator.SetFloat("Speed",currentSpeed,0.1f,Time.deltaTime);
+        _ctx.Animator.SetFloat("Speed", currentSpeed, 0.1f, Time.deltaTime);
     }
     public override void Exit() { }
-
 }

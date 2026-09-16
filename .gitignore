@@ -50,3 +50,11 @@ sysinfo.txt
 
 # Superpowers brainstorm sessions (temporary)
 .superpowers/brainstorm/
+
+# Local tools / IDE config
+.qoder/
+.qoder-cn/
+.superpowers/
+
+# Project documents (local only, not part of the code repo)
+docs/
