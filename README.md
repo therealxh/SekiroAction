@@ -33,9 +33,9 @@
 
 ## 运行方式
 
-1. 用 Unity 2022.3 LTS 打开项目
-2. 打开场景 `Assets/Scenes/SampleScene`
-3. Play 运行
+**方式一：下载体验版（Windows）**：前往 [Releases](../../releases) 下载压缩包，解压后直接运行 exe
+
+**方式二：开发者模式**：用 Unity 2022.3 LTS 打开项目 → 打开场景 `Assets/Scenes/SampleScene` → Play
 
 ## 架构说明
 
